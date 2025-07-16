@@ -15,15 +15,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'password': {'write_only': True},
         }
 
-    def create(self, validated_data):
-        validated_data.pop('repeated_password', None)
-        return super().create(validated_data)
 
-
-class CustomLoginSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'password']
+class CustomLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True, write_only=True)
 
 
 class SuccessResponseSerializer(serializers.Serializer):
