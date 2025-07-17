@@ -46,11 +46,18 @@ class ProfileDetailPatchSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileSerializer(BaseProfileSerializer):
+    type = serializers.CharField(source='user.type', read_only=True)
+
     class Meta:
         model = UserProfile
+        fields = BaseProfileSerializer.Meta.fields + ['location', 'tel', 'description', 'working_hours', 'type']
 
 
 class CustomerProfileSerializer(BaseProfileSerializer):
+    uploaded_at = serializers.DateTimeField(source='user.date_joined', read_only=True)
+    type = serializers.CharField(source='user.type', read_only=True)
+
     class Meta:
         model = UserProfile
+        fields = BaseProfileSerializer.Meta.fields + ['uploaded_at', 'type']
 
