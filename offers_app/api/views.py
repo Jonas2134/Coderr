@@ -24,6 +24,10 @@ class OffersGetPostView(generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return OfferSerializer
         return OfferFilterdSerializer
+    
+    @handle_exceptions(action='retrieving offers')
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     @handle_exceptions(action='creating offer')
     def create(self, request, *args, **kwargs):
