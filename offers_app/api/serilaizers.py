@@ -23,3 +23,10 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = ('id', 'title', 'image', 'description', 'details')
         read_only_fields = ('id')
+    
+    def validate_details(self, value):
+        types = {d.get('offer_type') for d in value}
+        required = {OfferDetail.BASIC, OfferDetail.STANDARD, OfferDetail.PREMIUM}
+        if types != required:
+            raise serializers.ValidationError('An Offer must have exactly one basic, one standard, and one premium detail.')
+        return value

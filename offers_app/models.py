@@ -6,20 +6,20 @@ from django.core.exceptions import ValidationError
 
 class Offer(models.Model):
     title = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='offers/', blank=True, null=True)
+    image = models.ImageField(upload_to='offer_pictures/', blank=True, null=True)
     description = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='offer_creator', on_delete=models.CASCADE)
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='offers', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
     
     def clean(self):
         super().clean()
-        detail_types = list(self.details.values_list('offer_type', flat=True))
+        detail_types = set(self.details.values_list('offer_type', flat=True))
         required = {'basic', 'standard', 'premium'}
-        if set(detail_types) != set(required):
+        if detail_types != required:
             raise ValidationError('An Offer must have exactly one basic, one standard, and one premium detail.')
 
 
@@ -47,7 +47,3 @@ class OfferDetail(models.Model):
 
     def __str__(self):
         return f"{self.offer.title} - {self.offer_type}"
-    
-    def save(self, *args, **kwargs):        
-        super().save(*args, **kwargs)
-        self.offer.full_clean()
