@@ -30,13 +30,12 @@ class NestedOfferResultSerializer(serializers.ModelSerializer):
     details = NestedDetailHyperlinkedSerializer(many=True, read_only=True)
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
-    user_details = NestedUserDetailsSerializer(source='creator', read_only=True)
 
     class Meta:
         model = Offer
         fields = (
             'id', 'user', 'title', 'image', 'description', 'created_at', 'updated_at',
-            'details', 'min_price', 'min_delivery_time', 'user_details'
+            'details', 'min_price', 'min_delivery_time'
         )
         read_only_fields = fields
     
@@ -56,6 +55,14 @@ class NestedDetailSerializer(serializers.ModelSerializer):
         model = OfferDetail
         fields = ('id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type')
         read_only_fields = ('id',)
+
+
+class OfferResultSerializer(NestedOfferResultSerializer):
+    user_details = NestedUserDetailsSerializer(source='creator', read_only=True)
+
+    class Meta(NestedOfferResultSerializer.Meta):
+        fields = NestedOfferResultSerializer.Meta.fields + ('user_details',)
+        read_only_fields = NestedOfferResultSerializer.Meta.read_only_fields + ('user_details',)
 
 
 class OfferSerializer(serializers.ModelSerializer):

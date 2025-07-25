@@ -1,6 +1,4 @@
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet, NumberFilter, CharFilter
-from django.db import models
-
+from django_filters.rest_framework import FilterSet, NumberFilter
 
 from offers_app.models import Offer
 

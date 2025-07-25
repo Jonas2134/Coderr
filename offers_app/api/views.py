@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.pagination import PageNumberPagination
 
-from .serilaizers import OfferSerializer, NestedOfferResultSerializer
+from .serilaizers import OfferSerializer, OfferResultSerializer, NestedOfferResultSerializer
 from .permissions import IsBusinessUser
 from .filters import OfferFilterSet
 from offers_app.models import Offer, OfferDetail
@@ -20,7 +20,7 @@ class OfferPagination(PageNumberPagination):
 
 
 class OffersGetPostView(generics.ListCreateAPIView):
-    queryset = Offer.objects.all()
+    queryset = Offer.objects.all().distinct()
     permission_classes = [AllowAny]
     pagination_class = OfferPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
@@ -36,13 +36,13 @@ class OffersGetPostView(generics.ListCreateAPIView):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return OfferSerializer
-        return NestedOfferResultSerializer
+        return OfferResultSerializer
 
     @handle_exceptions(action='retrieving offers')
     def get(self, request, *args, **kwargs):
         qs = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(qs)
-        serializer = NestedOfferResultSerializer(page, many=True, context={'request': request})
+        serializer = self.get_serializer(page, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
     @handle_exceptions(action='creating offer')
@@ -64,7 +64,25 @@ class OffersGetPostView(generics.ListCreateAPIView):
 
 
 class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    pass
+    queryset = Offer.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        offer_id = self.kwargs.get('pk')
+        try:
+            offer = Offer.objects.get(pk=offer_id)
+        except Offer.DoesNotExist:
+            raise NotFound(detail="Offer not found.")
+        return offer
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return NestedOfferResultSerializer
+        return OfferSerializer
+    
+    @handle_exceptions(action='retrieving offer')
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 
 class DetailsRetrieveView(generics.RetrieveAPIView):
