@@ -83,6 +83,14 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     @handle_exceptions(action='retrieving offer')
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+    
+    @handle_exceptions(action='updating offer')
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+    
+    @handle_exceptions(action='deleting offer')
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 class DetailsRetrieveView(generics.RetrieveAPIView):
