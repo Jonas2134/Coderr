@@ -4,10 +4,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status, filters
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
 
-from .serilaizers import OfferSerializer, OfferResultSerializer, NestedOfferResultSerializer
+from .serilaizers import OfferSerializer, OfferResultSerializer, NestedOfferResultSerializer, NestedDetailSerializer
 from .permissions import IsBusinessUser, IsUserCreator
 from .filters import OfferFilterSet
 from offers_app.models import Offer, OfferDetail
@@ -106,4 +106,18 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class DetailsRetrieveView(generics.RetrieveAPIView):
-    pass
+    queryset = OfferDetail.objects.all()
+    serializer_class = NestedDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        detail_id = self.kwargs.get('pk')
+        try:
+            detail = OfferDetail.objects.get(pk=detail_id)
+        except OfferDetail.DoesNotExist:
+            raise NotFound(detail="Offer detail not found.")
+        return detail
+
+    @handle_exceptions(action='retrieving offer detail')
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
