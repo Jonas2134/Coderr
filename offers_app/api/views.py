@@ -8,7 +8,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.pagination import PageNumberPagination
 
 from .serilaizers import OfferSerializer, OfferResultSerializer, NestedOfferResultSerializer
-from .permissions import IsBusinessUser
+from .permissions import IsBusinessUser, IsUserCreator
 from .filters import OfferFilterSet
 from offers_app.models import Offer, OfferDetail
 from core.decorators import handle_exceptions
@@ -67,6 +67,11 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsAuthenticated(), IsUserCreator()]
+        return super().get_permissions()
+
     def get_object(self):
         offer_id = self.kwargs.get('pk')
         try:
@@ -86,8 +91,15 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     
     @handle_exceptions(action='updating offer')
     def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-    
+        partial = True
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        instance.refresh_from_db()
+        output_serializer = self.get_serializer(instance)
+        return Response(output_serializer.data, status=status.HTTP_200_OK)
+
     @handle_exceptions(action='deleting offer')
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)

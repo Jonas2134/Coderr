@@ -74,8 +74,29 @@ class OfferSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
     
     def validate_details(self, value):
+        if getattr(self, 'partial', False):
+            return value
         types = {d.get('offer_type') for d in value}
         required = {OfferDetail.BASIC, OfferDetail.STANDARD, OfferDetail.PREMIUM}
         if types != required:
             raise serializers.ValidationError('An Offer must have exactly one basic, one standard, and one premium detail.')
         return value
+
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+        for attr, val in validated_data.items():
+            setattr(instance, attr, val)
+        instance.save()
+        if details_data is not None:
+            for detail in details_data:
+                try:
+                    offer_type = detail['offer_type']
+                    obj = instance.details.get(offer_type=offer_type)
+                except KeyError:
+                    raise serializers.ValidationError({'details': 'No detail found with offer_type.'})
+                except OfferDetail.DoesNotExist:
+                    raise serializers.ValidationError({'details': 'No detail found with offer_type.'})
+                for key, val in detail.items():
+                    setattr(obj, key, val)
+                obj.save()
+        return instance
