@@ -1,22 +1,16 @@
 from django.db import transaction
-from django.db.models import Min
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status, filters
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
-from rest_framework.pagination import PageNumberPagination
 
-from .serilaizers import OfferSerializer, OfferResultSerializer, NestedOfferResultSerializer, NestedDetailSerializer
+from .serializers import OfferSerializer, OfferResultSerializer, NestedOfferResultSerializer, NestedDetailSerializer
 from .permissions import IsBusinessUser, IsUserCreator
 from .filters import OfferFilterSet
+from .paginations import OfferPagination
 from offers_app.models import Offer, OfferDetail
 from core.decorators import handle_exceptions
-
-
-class OfferPagination(PageNumberPagination):
-    page_size = 1
-    page_size_query_param = "page_size"
 
 
 class OffersGetPostView(generics.ListCreateAPIView):
