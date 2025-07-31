@@ -6,11 +6,12 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 
 from .serializers import OfferSerializer, OfferResultSerializer, NestedOfferResultSerializer, NestedDetailSerializer
-from .permissions import IsBusinessUser, IsUserCreator
+from .permissions import IsUserCreator
 from .filters import OfferFilterSet
 from .paginations import OfferPagination
 from offers_app.models import Offer, OfferDetail
 from core.decorators import handle_exceptions
+from core.permissions import IsBusinessUser
 
 
 class OffersGetPostView(generics.ListCreateAPIView):
@@ -53,7 +54,7 @@ class OffersGetPostView(generics.ListCreateAPIView):
             offer.full_clean()
 
         offer.refresh_from_db()
-        output_serializer = OfferSerializer(offer)
+        output_serializer = self.get_serializer(offer)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
 
