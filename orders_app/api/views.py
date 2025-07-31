@@ -1,9 +1,11 @@
 from django.db.models import Q
 from rest_framework import generics, status, mixins
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
 
-from .serializers import OrderSerializer, OrderCreateSerializer
+from .serializers import OrderSerializer, OrderCreateSerializer, OrderPatchSerializer
+from .permissions import IsUserBusinessOwner
 from orders_app.models import Order
 from core.permissions import IsBusinessUser, IsCustomerUser
 from core.decorators import handle_exceptions
@@ -42,7 +44,40 @@ class OrderPatchDeleteView(
     mixins.DestroyModelMixin,
     generics.GenericAPIView
 ):
-    pass
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'PATCH':
+            return [IsAuthenticated(), IsBusinessUser(), IsUserBusinessOwner()]
+        if self.request.method == 'DELETE':
+            return [IsAdminUser()]
+        return super().get_permissions()
+
+    def get_object(self):
+        order_id = self.kwargs.get('pk')
+        try:
+            order = Order.objects.get(pk=order_id)
+        except Order.DoesNotExist:
+            raise NotFound('Order not found')
+        return order
+
+    @handle_exceptions(action='updating order')
+    def patch(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @handle_exceptions(action='updating order')
+    def partial_update(self, request, *args, **kwargs):
+        order = self.get_object()
+        serializer = OrderPatchSerializer(order, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        output_serializer = self.get_serializer(order, context={'request': request})
+        return Response(output_serializer.data, status=status.HTTP_200_OK)
+    
+    @handle_exceptions(action='deleting order')
+    def delete(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 
 class OrderCountView(generics.RetrieveAPIView):

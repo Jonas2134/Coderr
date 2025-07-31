@@ -50,6 +50,13 @@ class OrderCreateSerializer(serializers.Serializer):
         )
 
 
+class OrderPatchSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(
+        choices=Order.ORDER_STATUS_CHOICES,
+        required=True
+    )
+
+
 class OrderSerializer(serializers.ModelSerializer):
     title = serializers.ReadOnlyField(source='offer_detail.title')
     revisions = serializers.ReadOnlyField(source='offer_detail.revisions')
