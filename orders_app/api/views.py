@@ -81,30 +81,11 @@ class OrderPatchDeleteView(
         return super().destroy(request, *args, **kwargs)
 
 
-class OrderCountView(generics.RetrieveAPIView):
+class BaseOrderCountView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = OrderCountSerializer
-
-    def get_object(self):
-        business_user_id = self.kwargs.get('pk')
-        try:
-            user = get_user_model().objects.get(pk=business_user_id)
-        except get_user_model().DoesNotExist:
-            raise NotFound('Business user not found')
-        if user.type != 'business':
-            raise NotFound('User is not a business user')
-        return user
-
-    @handle_exceptions(action='retrieving order count')
-    def retrieve(self, request, *args, **kwargs):
-        user = self.get_object()
-        order_count = Order.objects.filter(business_user=user).count()
-        serializer = self.get_serializer({'order_count': order_count})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-class CompletedOrderCountView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = CompletedOrderCountSerializer
+    serializer_class = None
+    order_filter_kwargs = {}
+    count_field_name = ''
 
     def get_object(self):
         business_user_id = self.kwargs.get('pk')
@@ -116,9 +97,21 @@ class CompletedOrderCountView(generics.RetrieveAPIView):
             raise NotFound('User is not a business user')
         return user
     
-    @handle_exceptions(action='retrieving completed order count')
+    @handle_exceptions(action='retrieving order count')
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
-        completed_order_count = Order.objects.filter(business_user=user, status='completed').count()
-        serializer = self.get_serializer({'completed_order_count': completed_order_count})
+        count = Order.objects.filter(business_user=user, **self.order_filter_kwargs).count()
+        serializer = self.get_serializer({self.count_field_name: count})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class OrderCountView(BaseOrderCountView):
+    serializer_class = OrderCountSerializer
+    order_filter_kwargs = {}
+    count_field_name = 'order_count'
+ 
+
+class CompletedOrderCountView(BaseOrderCountView):
+    serializer_class = CompletedOrderCountSerializer
+    order_filter_kwargs = {'status': 'completed'}
+    count_field_name = 'completed_order_count'
