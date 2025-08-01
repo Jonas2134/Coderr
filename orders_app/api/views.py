@@ -1,10 +1,11 @@
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 from rest_framework import generics, status, mixins
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 
-from .serializers import OrderSerializer, OrderCreateSerializer, OrderPatchSerializer
+from .serializers import OrderSerializer, OrderCreateSerializer, OrderPatchSerializer, OrderCountSerializer, CompletedOrderCountSerializer
 from .permissions import IsUserBusinessOwner
 from orders_app.models import Order
 from core.permissions import IsBusinessUser, IsCustomerUser
@@ -81,8 +82,43 @@ class OrderPatchDeleteView(
 
 
 class OrderCountView(generics.RetrieveAPIView):
-    pass
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderCountSerializer
 
+    def get_object(self):
+        business_user_id = self.kwargs.get('pk')
+        try:
+            user = get_user_model().objects.get(pk=business_user_id)
+        except get_user_model().DoesNotExist:
+            raise NotFound('Business user not found')
+        if user.type != 'business':
+            raise NotFound('User is not a business user')
+        return user
+
+    @handle_exceptions(action='retrieving order count')
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        order_count = Order.objects.filter(business_user=user).count()
+        serializer = self.get_serializer({'order_count': order_count})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CompletedOrderCountView(generics.RetrieveAPIView):
-    pass
+    permission_classes = [IsAuthenticated]
+    serializer_class = CompletedOrderCountSerializer
+
+    def get_object(self):
+        business_user_id = self.kwargs.get('pk')
+        try:
+            user = get_user_model().objects.get(pk=business_user_id)
+        except get_user_model().DoesNotExist:
+            raise NotFound('Business user not found')
+        if user.type != 'business':
+            raise NotFound('User is not a business user')
+        return user
+    
+    @handle_exceptions(action='retrieving completed order count')
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        completed_order_count = Order.objects.filter(business_user=user, status='completed').count()
+        serializer = self.get_serializer({'completed_order_count': completed_order_count})
+        return Response(serializer.data, status=status.HTTP_200_OK)

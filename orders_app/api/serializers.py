@@ -82,3 +82,11 @@ class OrderSerializer(serializers.ModelSerializer):
             'updated_at'
         )
         read_only_fields = ('id', 'customer_user', 'business_user', 'created_at', 'updated_at')
+
+
+class OrderCountSerializer(serializers.Serializer):
+    order_count = serializers.IntegerField(read_only=True)
+
+
+class CompletedOrderCountSerializer(serializers.Serializer):
+    completed_order_count = serializers.IntegerField(read_only=True)
