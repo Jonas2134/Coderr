@@ -13,8 +13,8 @@ class Offer(models.Model):
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='offers', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
-    
+        return f"{self.pk}: {self.title}"
+
     def clean(self):
         super().clean()
         detail_types = set(self.details.values_list('offer_type', flat=True))

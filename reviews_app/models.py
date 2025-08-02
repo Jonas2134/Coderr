@@ -19,6 +19,17 @@ class Review(models.Model):
         help_text="Rating from 1 to 10, where 1 is the worst and 10 is the best."
     )
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(rating__gte=1, rating__lte=10),
+                name='rating_between_1_and_10'
+            )
+        ]
+
+    def __str__(self):
+        return super().__str__()
+
     def clean(self):
         super().clean()
         errors = {}
@@ -28,11 +39,3 @@ class Review(models.Model):
             errors['reviewer'] = "The reviewer must be of type 'customer'."
         if errors:
             raise ValidationError(errors)
-
-    class Meta:
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(rating__gte=1, rating__lte=10),
-                name='rating_between_1_and_10'
-            )
-        ]

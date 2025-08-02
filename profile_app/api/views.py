@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 
-from profile_app.models import UserProfile
 from .serializers import ProfileDetailSerializer, ProfileDetailPatchSerializer, BusinessProfileSerializer, CustomerProfileSerializer
+from profile_app.models import UserProfile
 from core.decorators import handle_exceptions
 
 
@@ -15,7 +15,6 @@ class ProfileDetailPatchView(generics.RetrieveUpdateAPIView):
         pk = self.kwargs.get('pk')
         try:
             profile = UserProfile.objects.get(pk=pk)
-            print(f"DEBUG: Found profile with pk={pk}: {profile}")
         except UserProfile.DoesNotExist:
             raise NotFound(detail="Profile not found.")
         return profile

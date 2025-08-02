@@ -75,7 +75,7 @@ class OrderPatchDeleteView(
         self.perform_update(serializer)
         output_serializer = self.get_serializer(order, context={'request': request})
         return Response(output_serializer.data, status=status.HTTP_200_OK)
-    
+
     @handle_exceptions(action='deleting order')
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
@@ -96,7 +96,7 @@ class BaseOrderCountView(generics.RetrieveAPIView):
         if user.type != 'business':
             raise NotFound('User is not a business user')
         return user
-    
+
     @handle_exceptions(action='retrieving order count')
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
@@ -109,7 +109,7 @@ class OrderCountView(BaseOrderCountView):
     serializer_class = OrderCountSerializer
     order_filter_kwargs = {}
     count_field_name = 'order_count'
- 
+
 
 class CompletedOrderCountView(BaseOrderCountView):
     serializer_class = CompletedOrderCountSerializer

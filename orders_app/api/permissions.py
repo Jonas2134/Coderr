@@ -7,8 +7,6 @@ class IsUserBusinessOwner(BasePermission):
             order = view.get_object()
             return bool(request.user == order.business_user)
         return True
-    
+
     def has_object_permission(self, request, view, obj):
         return self.has_permission(request, view)
-
-

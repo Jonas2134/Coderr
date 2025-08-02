@@ -1,11 +1,11 @@
+from django.contrib.auth import authenticate
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
 
-from auth_app.models import CustomUser
 from .serializers import RegistrationSerializer, CustomLoginSerializer, SuccessResponseSerializer
+from auth_app.models import CustomUser
 
 
 def build_response(user, status_code):
@@ -46,7 +46,7 @@ class RegistrationView(generics.CreateAPIView):
             return Response({'email': ['This e-mail address is already taken!']}, status=status.HTTP_400_BAD_REQUEST)
         if data['password'] != data['repeated_password']:
             return Response({'password': ["The passwords don't match!"]}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def _create_user(self, username, email, password, type):
         user = CustomUser(username=username, email=email, type=type)
         user.set_password(password)

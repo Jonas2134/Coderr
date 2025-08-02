@@ -1,7 +1,7 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from offers_app.models import Offer, OfferDetail
-from django.contrib.auth import get_user_model
 
 
 class NestedUserDetailsSerializer(serializers.ModelSerializer):
@@ -38,7 +38,7 @@ class NestedOfferResultSerializer(serializers.ModelSerializer):
             'details', 'min_price', 'min_delivery_time'
         )
         read_only_fields = fields
-    
+
     def get_min_price(self, obj):
         prices = [detail.price for detail in obj.details.all()]
         return min(prices) if prices else None
@@ -72,7 +72,7 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = ('id', 'title', 'image', 'description', 'details')
         read_only_fields = ('id',)
-    
+
     def validate_details(self, value):
         if getattr(self, 'partial', False):
             return value

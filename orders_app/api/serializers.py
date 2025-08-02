@@ -20,17 +20,16 @@ class OfferDetailRelatedField(serializers.PrimaryKeyRelatedField):
             return super().run_validation(data)
         except serializers.ValidationError as e:
             codes = e.get_codes()
-
-            def has_dne(c):
-                if isinstance(c, (list, tuple)):
-                    return any(has_dne(x) for x in c)
-                if isinstance(c, dict):
-                    return any(has_dne(v) for v in c.values())
-                return c == 'does_not_exist'
-
-            if has_dne(codes):
+            if self._has_dne(codes):
                 raise NotFound(self.error_messages['does_not_exist'])
             raise
+
+    def _has_dne(self, c):
+        if isinstance(c, (list, tuple)):
+            return any(self._has_dne(x) for x in c)
+        if isinstance(c, dict):
+            return any(self._has_dne(v) for v in c.values())
+        return c == 'does_not_exist'
 
 
 class OrderCreateSerializer(serializers.Serializer):

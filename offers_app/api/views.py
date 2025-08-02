@@ -74,16 +74,16 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         except Offer.DoesNotExist:
             raise NotFound(detail="Offer not found.")
         return offer
-    
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return NestedOfferResultSerializer
         return OfferSerializer
-    
+
     @handle_exceptions(action='retrieving offer')
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-    
+
     @handle_exceptions(action='updating offer')
     def update(self, request, *args, **kwargs):
         partial = True
