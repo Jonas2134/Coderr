@@ -10,10 +10,36 @@ from offers_app.models import Offer
 
 
 class GetBaseInfoView(GenericAPIView):
+    """
+    API endpoint to retrieve aggregated base statistics for the application.
+
+    Provides counts of reviews, average review rating, number of business profiles,
+    and total offers. Accessible without authentication.
+
+    Attributes:
+        serializer_class (Serializer): BaseInfoSerializer for output formatting.
+        permission_classes (list): [AllowAny] to allow unrestricted access.
+    """
     serializer_class = BaseInfoSerializer
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        """
+        Handle GET requests to fetch base statistics.
+
+        1. Aggregate review count and average rating from Review model.
+        2. Count business users via CustomUser model's `type='business'`.
+        3. Count total Offer instances.
+        4. Round average rating to one decimal place (default to 0 if no reviews).
+        5. Serialize and return the aggregated data.
+
+        Returns:
+            rest_framework.response.Response: A Response containing:
+                - review_count (int): Total number of reviews.
+                - average_rating (float): Average rating rounded to one decimal.
+                - business_profile_count (int): Number of business users.
+                - offer_count (int): Total number of offers.
+        """
         review_stats = Review.objects.aggregate(review_count=Count('pk'), average_rating=Avg('rating'))
         business_count = get_user_model().objects.filter(type='business').count()
         offer_count = Offer.objects.count()
