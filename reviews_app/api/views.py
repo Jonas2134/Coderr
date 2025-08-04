@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 
 from .serializers import ReviewSerializer, ReviewCreateSerializer, ReviewUpdateSerializer
-from .permissions import OneReviewPerBusinessUserPermission, IsUserReviewerPermission
+from .permissions import IsUserReviewerPermission
 from reviews_app.models import Review
 from core.permissions import IsCustomerUser
 from core.decorators import handle_exceptions
@@ -51,7 +51,7 @@ class ReviewsGetPostView(generics.ListCreateAPIView):
         This dynamic handling ensures stricter access control for creating reviews.
         """
         if self.request.method == 'POST':
-            return [IsAuthenticated(), IsCustomerUser(), OneReviewPerBusinessUserPermission()]
+            return [IsAuthenticated(), IsCustomerUser()]
         return super().get_permissions()
 
     @handle_exceptions(action='listing reviews')

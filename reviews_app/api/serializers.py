@@ -1,4 +1,6 @@
+from django.db import IntegrityError
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from reviews_app.models import Review
 
@@ -43,6 +45,33 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['business_user', 'rating', 'description']
+    
+    def validate(self, attrs):
+        """
+        Perform two key validations before creating a Review:
+
+        1. Automatically assign the current user as the `reviewer`.
+        2. Enforce that each user may only submit one review per business:
+           if a review by this user for the given business_user already exists,
+           raise a ValidationError.
+
+        Args:
+            attrs (dict): The incoming, unvalidated data from the request.
+
+        Raises:
+            serializers.ValidationError:
+                If a review by this user for the same business_user is found,
+                with an error keyed on 'business_user'.
+
+        Returns:
+            dict: The validated attributes, now including the `reviewer`
+                  field set to request.user.
+        """
+        user = self.context['request'].user
+        attrs['reviewer'] = user
+        if Review.objects.filter(reviewer=user, business_user=attrs['business_user']).exists():
+            raise serializers.ValidationError({'business_user': 'You have already submitted a review for this business user.'})
+        return super().validate(attrs)
 
     def create(self, validated_data):
         """
@@ -56,10 +85,7 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
             Review: A new Review instance linked to the authenticated user.
         """
         reviewer = self.context['request'].user
-        return Review.objects.create(
-            reviewer=reviewer,
-            **validated_data
-        )
+        return Review.objects.create(reviewer=reviewer, **validated_data)
 
 
 class ReviewUpdateSerializer(serializers.ModelSerializer):
