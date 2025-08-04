@@ -127,7 +127,7 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         - GET uses default IsAuthenticated.
         """
         if self.request.method in ['PATCH', 'DELETE']:
-            return [IsAuthenticated(), IsUserCreator()]
+            return [IsAuthenticated(), IsBusinessUser(), IsUserCreator()]
         return super().get_permissions()
 
     def get_object(self):
