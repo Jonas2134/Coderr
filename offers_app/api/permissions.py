@@ -1,5 +1,7 @@
 from rest_framework.permissions import BasePermission
 
+from offers_app.models import Offer
+
 
 class IsUserCreator(BasePermission):
     """
@@ -30,9 +32,9 @@ class IsUserCreator(BasePermission):
                   * request.user is authenticated, and
                   * request.user == offer.creator.
         """
-        if request.method in ['PUT', 'PATCH', 'DELETE']:
+        if request.method in ['PATCH', 'DELETE']:
             offer = view.get_object()
-            return bool(request.user and request.user.is_authenticated and offer.creator == request.user)
+            return bool(request.user and request.user.is_authenticated and request.user == offer.creator)
         return True
 
     def has_object_permission(self, request, view, obj):

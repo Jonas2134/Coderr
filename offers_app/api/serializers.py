@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -84,6 +86,16 @@ class NestedOfferResultSerializer(serializers.ModelSerializer):
         Returns:
             float or None: The lowest detail.price, or None if no details.
         """
+        request = self.context.get('request')
+        param = request.query_params.get('min_price')
+        if param is not None:
+            try:
+                param_val = Decimal(param)
+            except (TypeError, ValueError):
+                param_val = None
+            else:
+                if any(detail.price == param_val for detail in obj.details.all()):
+                    return param_val
         prices = [detail.price for detail in obj.details.all()]
         return min(prices) if prices else None
 
@@ -97,6 +109,16 @@ class NestedOfferResultSerializer(serializers.ModelSerializer):
         Returns:
             int or None: The shortest detail.delivery_time_in_days, or None if no details.
         """
+        request = self.context.get('request')
+        param = request.query_params.get('max_delivery_time')
+        if param is not None:
+            try:
+                param_val = int(param)
+            except (TypeError, ValueError):
+                param_val = None
+            else:
+                if any(detail.delivery_time_in_days == param_val for detail in obj.details.all()):
+                    return param_val
         times = [detail.delivery_time_in_days for detail in obj.details.all()]
         return min(times) if times else None
 

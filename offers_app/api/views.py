@@ -126,7 +126,7 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         - PUT/PATCH/DELETE requires authentication + creator ownership.
         - GET uses default IsAuthenticated.
         """
-        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+        if self.request.method in ['PATCH', 'DELETE']:
             return [IsAuthenticated(), IsUserCreator()]
         return super().get_permissions()
 
@@ -169,9 +169,8 @@ class OffersRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         3. Save updates via `perform_update`.
         4. Refresh and return nested representation.
         """
-        partial = True
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         instance.refresh_from_db()
