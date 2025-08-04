@@ -99,7 +99,7 @@ class OrderPatchDeleteView(
         - DELETE: Admin users only.
         """
         if self.request.method == 'PATCH':
-            return [IsAuthenticated(), IsBusinessUser(), IsUserBusinessOwner()]
+            return [IsAuthenticated(), IsUserBusinessOwner(), IsBusinessUser()]
         if self.request.method == 'DELETE':
             return [IsAdminUser()]
         return super().get_permissions()
