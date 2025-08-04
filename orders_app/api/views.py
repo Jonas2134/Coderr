@@ -201,7 +201,7 @@ class OrderCountView(BaseOrderCountView):
     Inherits BaseOrderCountView with no additional filters.
     """
     serializer_class = OrderCountSerializer
-    order_filter_kwargs = {}
+    order_filter_kwargs = {'status': 'in_progress'}
     count_field_name = 'order_count'
 
 
