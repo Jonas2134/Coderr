@@ -75,17 +75,21 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-        Overrides the default create method to associate the review with the
-        currently authenticated user as the reviewer.
+        Create and return a new Review instance.
+
+        This method is called after the input data has passed validation.
+        It pulls the currently authenticated user from the serializer context
+        and uses it as the `reviewer` for the new Review. All other fields
+        (business_user, rating, description) come from `validated_data`.
 
         Args:
-            validated_data (dict): Validated input data from the request.
+            validated_data (dict): The validated, deserialized data from the request,
+                containing keys 'business_user', 'rating', and 'description'.
 
         Returns:
-            Review: A new Review instance linked to the authenticated user.
+            Review: The newly created Review instance, saved to the database.
         """
-        reviewer = self.context['request'].user
-        return Review.objects.create(reviewer=reviewer, **validated_data)
+        return Review.objects.create(**validated_data)
 
 
 class ReviewUpdateSerializer(serializers.ModelSerializer):
