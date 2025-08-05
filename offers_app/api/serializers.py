@@ -88,16 +88,16 @@ class NestedOfferResultSerializer(serializers.ModelSerializer):
         """
         request = self.context.get('request')
         param = request.query_params.get('min_price')
-        if param is not None:
-            try:
-                param_val = Decimal(param)
-            except (TypeError, ValueError):
-                param_val = None
-            else:
-                if any(detail.price == param_val for detail in obj.details.all()):
-                    return param_val
-        prices = [detail.price for detail in obj.details.all()]
-        return min(prices) if prices else None
+        if param is None:
+            prices = [detail.price for detail in obj.details.all()]
+            return min(prices) if prices else None
+        try:
+            threshold = Decimal(param)
+        except (TypeError, ValueError):
+            prices = [detail.price for detail in obj.details.all()]
+            return min(prices) if prices else None
+        matching = [detail.price for detail in obj.details.all() if detail.price >= threshold]
+        return min(matching) if matching else None
 
     def get_min_delivery_time(self, obj):
         """
@@ -111,16 +111,16 @@ class NestedOfferResultSerializer(serializers.ModelSerializer):
         """
         request = self.context.get('request')
         param = request.query_params.get('max_delivery_time')
-        if param is not None:
-            try:
-                param_val = int(param)
-            except (TypeError, ValueError):
-                param_val = None
-            else:
-                if any(detail.delivery_time_in_days == param_val for detail in obj.details.all()):
-                    return param_val
-        times = [detail.delivery_time_in_days for detail in obj.details.all()]
-        return min(times) if times else None
+        if param is None:
+            times = [detail.delivery_time_in_days for detail in obj.details.all()]
+            return min(times) if times else None
+        try:
+            threshold = int(param)
+        except (TypeError, ValueError):
+            times = [detail.delivery_time_in_days for detail in obj.details.all()]
+            return min(times) if times else None
+        matching = [detail.delivery_time_in_days for detail in obj.details.all() if detail.delivery_time_in_days <= threshold]
+        return max(matching) if matching else None
 
 
 class NestedDetailSerializer(serializers.ModelSerializer):

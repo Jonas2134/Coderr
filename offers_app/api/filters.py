@@ -46,7 +46,7 @@ class OfferFilterSet(FilterSet):
         Returns:
             QuerySet: Offers with details.price ≤ value.
         """
-        return queryset.filter(details__price=value).distinct()
+        return queryset.filter(details__price__gte=value).distinct()
 
     def filter_max_delivery_time(self, queryset, name, value):
         """
@@ -60,4 +60,4 @@ class OfferFilterSet(FilterSet):
         Returns:
             QuerySet: Offers with details.delivery_time_in_days ≤ value.
         """
-        return queryset.filter(details__delivery_time_in_days=value).distinct()
+        return queryset.filter(details__delivery_time_in_days__lte=value).distinct()
